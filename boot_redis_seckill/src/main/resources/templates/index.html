@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <title>秒杀系统测试</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <table class="table">
+        <caption align="center">秒杀商品列表</caption>
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>库存</th>
+                <th>产地</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="productVo:${lists}" th:class="${productVo.buy?'success':'active'}">
+                <td>[[${productVo.product.productName}]]</td>
+                <td>[[${productVo.product.productStock}]]</td>
+                <td>[[${productVo.product.productAddress}]]</td>
+                <td>
+                    <a class="btn btn-success" th:if="${productVo.buy}"  th:href="|/success?orderId=${productVo.orderId}|">查看订单</a>
+                    <button type="button" id="submitId" class="btn btn-primary" th:if="${!productVo.buy}" th:productId="${productVo.product.productId}">开始抢购</button>
+                    <span th:id="'spanId-'+${productVo.product.productId}" style="color:red"></span>
+                </td>
+            </tr>
+        </tbody>
+   </table>
+ </div>
+</body>
+</html>
+<script>
+  $(document).on("click","#submitId",function () {
+      $(this).attr("disabled","disabled");
+      var productId=$(this).attr("productId");
+      var spanId="spanId-"+productId;
+      $("#"+spanId).text("努力抢购中.....");
+      $.ajax({
+          url:'/submit',
+          type:'get',
+          data:{
+            'productId':productId,
+              'userId':'1',
+          },
+          dataType:'JSON',
+          success:function(data){
+              if(data.flag){//抢购成功！！！
+                  $("#"+spanId).text(data.message+"正在导入您的订单.....");
+              }else{///抢购失败
+                  $("#"+spanId).text(data.message);
+              }
+              setTimeout(function(){
+                  window.location.reload();
+              },5000);
+          },
+          error:function(){
+              alert("系统繁忙请稍候重试！！！");
+          }
+      })
+  })
+</script>
